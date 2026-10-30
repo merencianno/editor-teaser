@@ -9,6 +9,8 @@ projeto [Remotion](https://www.remotion.dev/) que você ajusta num painel, mostr
 
 Você revisa e decide; ele corta, alinha, mede e renderiza.
 
+**Primeira vez? Comece pelo [TUTORIAL.md](TUTORIAL.md)** (passo a passo no Mac, da instalação ao export).
+
 ## Por que é assim
 
 Cada regra abaixo veio de um corte reprovado ou de uma fonte de editor (as fontes estão nas skills).
