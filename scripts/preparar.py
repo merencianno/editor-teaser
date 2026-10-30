@@ -8,9 +8,11 @@ export final. O bruto nunca é alterado: tudo sai em trabalho/<projeto>/.
   render minutos por quadro), encoder da máquina (NVENC, VideoToolbox ou x264).
 - final-a.mp4: só quando o bruto tem mais de 1080 de altura; mesma resolução do bruto, GOP 15. Usado no export.
 - voz.m4a: o áudio do bruto em −16 LUFS (loudnorm). --tirar-ar passa um redutor de ruído leve (afftdn) antes.
-A segunda câmera entra depois, com scripts/sincronizar.py.
+A segunda câmera entra depois, com scripts/sincronizar.py. Os assets fornecidos (B-roll, logos, telas) vão para
+trabalho/<projeto>/assets/ e são inventariados aqui e a cada montagem (scripts/assets.py).
 """
 import argparse, json, subprocess, sys
+from assets import inventariar
 from comum import encoder, ffprobe, gravar_projeto, pasta, publicar, slug
 
 
@@ -61,6 +63,7 @@ def main():
         dados["musica"] = publicar(a.projeto, dir_ / f"musica{ext}", f"musica{ext}")
         print(f"trilha: {dados['musica']}")
     gravar_projeto(a.projeto, dados)
+    print(f"assets fornecidos (trabalho/{slug(a.projeto)}/assets/):"); inventariar(a.projeto)
     print(f"pronto: {pj}")
 
 

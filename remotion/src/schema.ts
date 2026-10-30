@@ -32,6 +32,22 @@ export const pedacoLegenda = z.object({
   texto: z.string().describe("no máximo 2 palavras, minúscula, sem pontuação"),
 });
 
+export const insercao = z.object({
+  asset: z.string().describe("arquivo em public/<projeto>/assets/ (fornecido: o editor não gera asset)"),
+  tipo: z.enum(["imagem", "video"]),
+  alfa: z.boolean().describe("asset com transparência (PNG, WebM VP9 ou ProRes 4444)"),
+  bruto: seg.describe("entra quando esta fala é dita (tempo da voz, s): segue o corte"),
+  dur: z.number().min(0.3).max(30).describe("quanto fica (s): corte rápido 2–4 s, sequência 6–8 s"),
+  modo: z.enum(["cheio", "sobreposto", "lado"]).describe("cheio cobre o quadro; sobreposto = PNG por cima; lado = metade (no 9:16 vira cheio)"),
+  movimento: z.enum(["parado", "push"]),
+  push: z.number().min(0).max(0.15).describe("aproximação ao longo da inserção (0,05–0,10)"),
+  inicioClipe: z.number().min(0).describe("de onde o clipe começa (s): corte pela ação do clipe"),
+  foco: ponto.describe("ponto de interesse do asset: o recorte (principalmente o 9:16) centra nele"),
+  ajuste: z.enum(["cobrir", "conter"]),
+  posicao: z.object({ x: z.number().min(0).max(1), y: z.number().min(0).max(1), largura: z.number().min(0.05).max(1) })
+    .describe("sobreposto: centro (x, y de 0 a 1) e largura (fração do quadro); fora do rosto e da legenda"),
+});
+
 export const timeline = z.object({
   projeto: z.string(),
   formato: z.enum(["16x9", "9x16"]),
@@ -58,6 +74,7 @@ export const timeline = z.object({
   }),
   abertura: z.number().min(0).max(4).describe("o vídeo nasce do preto em N s (0 = corte seco)"),
   segmentos: z.array(segmento),
+  insercoes: z.array(insercao).describe("B-roll e assets fornecidos, ancorados na fala; o áudio da fala segue por baixo"),
   legenda: z.object({
     mostrar: z.boolean(),
     estilo: z.string().describe("padrao ou um estilo criado pela skill nova-referencia (remotion/src/legendas)"),

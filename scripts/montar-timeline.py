@@ -12,9 +12,12 @@ Regras aplicadas (skills ritmo-e-corte e som-e-musica):
 - zoom: cena nova abre a 1,0 com push de 5 %; jump cut alterna 1,0 / 1,075; frase-chave em 1,15 (punch-in) com push
   de 5 %; reação (respiro ≥ 0,8 s) com push de 8 %; o resto quase parado (2 %);
 - com duas câmeras, toda emenda troca de câmera (esconde o jump cut, cumpre os 30°);
-- música: o ponto `hitNaFaixa` da trilha cai no começo da frase-chave escolhida; ajustes (turn line) por fala.
+- música: o ponto `hitNaFaixa` da trilha cai no começo da frase-chave escolhida; ajustes (turn line) por fala;
+- inserções (B-roll e assets fornecidos) ancoradas na fala (`sobre`, `ate` ou `dur`); asset que falta vira pedido em
+  trabalho/<projeto>/assets-pedido.md, nunca é gerado.
 """
 import argparse, json, re, shutil, sys
+from assets import inventariar
 from comum import composicoes, ler_projeto, mmss, pasta, props_grava, slug
 from falas import Falas, canon, norm
 
@@ -150,6 +153,57 @@ def main():
     musica = {"arquivo": pj.get("musica", "") if m.get("usar", True) else "", "emTimeline": em_tl,
               "volumeSobFala": m.get("volumeSobFala", 0.22), "volumeCheio": m.get("volumeCheio", 0.7), "ajustes": ajustes}
 
+    # ── B-roll e assets fornecidos: ancorados na fala; o que faltar vira pedido (o editor não gera asset) ──
+    inv = inventariar(a.projeto, silencioso=True)
+    def acha_fala(texto):
+        alvo = [canon(x) for x in texto.split() if norm(x)]
+        for i in range(len(ws_tl) - len(alvo) + 1):
+            if all(canon(ws_tl[i + j]["w"]) == a_ for j, a_ in enumerate(alvo)): return ws_tl[i], ws_tl[i + len(alvo) - 1]
+        sys.exit(f"inserção ancorada numa fala que não está no corte: {texto!r}")
+    insercoes, pedidos, avisos = {"16x9": [], "9x16": []}, [], []
+    for x in rot.get("insercoes", []):
+        w0, w1 = acha_fala(x["sobre"])
+        dur = (acha_fala(x["ate"])[1]["e"] - w0["s"]) if x.get("ate") else x.get("dur", 3.0)
+        item = inv.get(x["asset"])
+        if not item:
+            pedidos.append({**x, "dur": round(dur, 1), "fala": " ".join(w["w"] for w in ws_tl if w0["s"] <= w["s"] <= w1["s"])}); continue
+        ini = x.get("inicio", 0.0)
+        if item["tipo"] == "video" and item["duracao"] and dur > item["duracao"] - ini:
+            avisos.append(f"{x['asset']}: o clipe tem {item['duracao'] - ini:.1f} s a partir de {ini} s; a inserção pedia {dur:.1f} s (encurtada)")
+            dur = item["duracao"] - ini
+        if not (2 <= dur <= 4 or 6 <= dur <= 8):
+            avisos.append(f"{x['asset']}: {dur:.1f} s fica fora das faixas (corte 2–4 s, sequência 6–8 s); confira pela ação do clipe")
+        modo = x.get("modo", "cheio")
+        for formato in ("16x9", "9x16"):
+            vert = formato == "9x16"
+            pos = (x.get("posicao") or {}).get(formato) or ({"x": 0.5, "y": 0.72, "largura": 0.36} if vert else {"x": 0.84, "y": 0.2, "largura": 0.2})
+            insercoes[formato].append({
+                "asset": item["arquivo"], "tipo": "video" if item["tipo"] == "video" else "imagem", "alfa": item["alfa"],
+                "bruto": round(w0["bruto"], 3), "dur": round(dur, 3), "modo": modo,
+                "movimento": x.get("movimento", "parado"), "push": x.get("push", 0.06 if x.get("movimento") == "push" else 0.0),
+                "inicioClipe": ini, "foco": x.get("foco", [0.5, 0.5]), "ajuste": x.get("ajuste", "cobrir"), "posicao": pos})
+            if vert and modo == "lado": avisos.append(f"{x['asset']}: 'lado' não existe no 9:16; lá ele entra cheio")
+    if pedidos:
+        linhas = ["# Assets que faltam", "",
+                  "O editor não gera asset. Peça estes à skill de design, ao design system da sua marca ou ao time, salve em",
+                  f"`trabalho/{slug(a.projeto)}/assets/` com o nome indicado e monte de novo.", ""]
+        for p_ in pedidos:
+            modo = p_.get("modo", "cheio")
+            foto = p_["asset"].lower().endswith((".png", ".jpg", ".jpeg", ".webp"))
+            if modo == "sobreposto":
+                fmt, minimo = "PNG com fundo transparente, largura de pelo menos 1000 px", ""
+            elif foto:
+                fmt, minimo = "JPG ou PNG com pelo menos 1920 px no lado maior, assunto no centro (o 9:16 recorta as laterais)", ""
+            else:
+                fmt = "MP4 (H.264) 1920×1080 com o assunto no centro (serve ao 16:9 e ao recorte 9:16), ou uma versão 1080×1920 à parte"
+                minimo = f"- **Duração mínima:** {p_['dur'] + 1:.0f} s (a inserção usa {p_['dur']:.1f} s; a folga deixa cortar pela ação)"
+            linhas += [f"## `{p_['asset']}`", f"- **O quê:** {p_.get('descricao', '(descrever)')}",
+                       f"- **Sobre a fala:** \"{p_['fala']}\"", f"- **Modo:** {modo}", f"- **Formato:** {fmt}",
+                       f"- **Fica na tela:** {p_['dur']:.1f} s"] + ([minimo] if minimo else []) + [""]
+        (dir_ / "assets-pedido.md").write_text("\n".join(linhas))
+        print(f"FALTAM {len(pedidos)} asset(s): lista em {dir_ / 'assets-pedido.md'} (as inserções entram quando chegarem)")
+    for av in avisos: print("aviso:", av)
+
     cta = rot.get("cta") or {}
     cameras = {"a": {"arquivo": pj["fontes"]["a"]["arquivo"], "arquivoFinal": pj["fontes"]["a"].get("arquivoFinal", ""),
                      "offset": 0.0, "ganho": [1.0, 1.0, 1.0], "rosto": [0.5, 0.4]}}
@@ -171,6 +225,7 @@ def main():
             "abertura": rot.get("abertura", 1.0),
             "segmentos": segs,
             "legenda": {"mostrar": vert, "estilo": (rot.get("legenda") or {}).get("estilo", "padrao"), "tamanho": 86 if vert else 60, "peso": 550, "topo": 0.6 if vert else 0.64, "cor": "#ffffff"},
+            "insercoes": insercoes[formato],
             "legendas": [],
             "musica": musica,
             "cta": {"duracao": cta.get("duracao", 4.0), "titulo": cta.get("titulo", ""), "linha": cta.get("linha", ""),

@@ -7,6 +7,8 @@ Grava nas duas composições da versão:
 - segmentos[].exposicao: leva a pele de cada take à luz típica da sua câmera (a luz não pula entre takes);
 - cameras.*.rosto: onde o rosto costuma ficar (mediana), usado quando um plano não acha rosto;
 - cameras.b.ganho: ganho R/G/B que casa a pele da câmera B na da A (só com duas câmeras);
+- insercoes[].foco: ponto de interesse de cada B-roll cheio (rosto, senão o centro da textura), para o recorte 9:16
+  não cortar o assunto (só quando o roteiro não deu um foco);
 - cor.luz: só se a pele mediana da câmera A estiver fora de 45–70 IRE (leva à borda mais próxima, no máximo 1,5×).
 Imprime tudo o que mediu: confira antes de aceitar (num caso real a câmera lateral saiu ~15 % mais clara e menos
 vermelha; o ganho por canal corrigiu sem mexer no look).
@@ -44,6 +46,19 @@ def pele(img, cx, cy, larg):
     if m.sum() < 150: return None
     # 8 bits de vídeo: 16 = 0 IRE, 235 = 100 IRE (o proxy é limitado)
     return c[m].mean(0), float((np.median(Y[m]) - 16) / 219 * 100)
+
+
+def foco_asset(arq, tipo, inicio, dur):
+    """rosto no quadro do meio do asset; sem rosto, o centro de massa das bordas (onde está o assunto)"""
+    img = quadro(arq, inicio + dur / 2 if tipo == "video" else 0)
+    if img is None: return None
+    r = rosto(img)
+    if r: return [round(r[0], 3), round(r[1], 3)]
+    g = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY).astype(np.float32)
+    e = np.abs(cv2.Sobel(g, cv2.CV_32F, 1, 0)) + np.abs(cv2.Sobel(g, cv2.CV_32F, 0, 1))
+    if e.sum() < 1: return None
+    ys, xs = np.mgrid[0:H, 0:W]
+    return [round(float((xs * e).sum() / e.sum() / W), 3), round(float((ys * e).sum() / e.sum() / H), 3)]
 
 
 def main():
@@ -100,10 +115,16 @@ def main():
         g = rgb_cam["a"] / np.maximum(rgb_cam["b"], 1) * np.array(tl["cameras"]["a"]["ganho"])
         tl["cameras"]["b"]["ganho"] = [round(float(x), 3) for x in np.clip(g, 0.6, 1.6)]
         print(f"pele A {np.round(rgb_cam['a'], 1)} × B {np.round(rgb_cam['b'], 1)} → ganho da B {tl['cameras']['b']['ganho']}")
+    focos = {}
     for comp in comps:
         d = props_get(comp)
         d["segmentos"] = tl["segmentos"]; d["cameras"] = tl["cameras"]; d["cor"]["luz"] = tl["cor"]["luz"]
+        for x in d.get("insercoes", []):
+            if x["modo"] == "sobreposto" or x["foco"] != [0.5, 0.5]: continue
+            if x["asset"] not in focos: focos[x["asset"]] = foco_asset(pub / x["asset"], x["tipo"], x["inicioClipe"], x["dur"])
+            if focos[x["asset"]]: x["foco"] = focos[x["asset"]]
         props_grava(comp, d)
+    for a_, fo in focos.items(): print(f"foco do B-roll {a_}: {fo}")
     print(f"gravado em {', '.join(comps)}")
 
 

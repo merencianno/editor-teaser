@@ -5,7 +5,7 @@
 import { loadFont } from "@remotion/google-fonts/InstrumentSans";
 import { createContext, useContext, useMemo } from "react";
 import {
-  AbsoluteFill, Audio, Easing, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig,
+  AbsoluteFill, Audio, Easing, Img, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig,
 } from "remotion";
 import { ESTILOS } from "./legendas";
 import type { Timeline } from "./schema";
@@ -75,10 +75,13 @@ const Filtros: React.FC = () => {
 };
 
 // ── um plano: câmera, zoom com push suave, recorte que segue o rosto ──
-const Plano: React.FC<{ s: Seg; atraso: number; dur: number }> = ({ s, atraso, dur }) => {
+// `caixa`: tamanho da área onde o plano é desenhado (padrão: o quadro inteiro; no modo "lado" do B-roll, metade dele).
+// `desloca`: segundos a mais no bruto (o plano começa no meio do segmento).
+const Plano: React.FC<{ s: Seg; atraso: number; dur: number; caixa?: { w: number; h: number }; desloca?: number }> = ({ s, atraso, dur, caixa, desloca = 0 }) => {
   const { tl, f } = useTl();
   const frame = useCurrentFrame();
-  const { width, height } = useVideoConfig();
+  const quadro = useVideoConfig();
+  const { w: width, h: height } = caixa ?? { w: quadro.width, h: quadro.height };
   const cam = tl.cameras[s.camera] ?? tl.cameras.a;
   const id = tl.cameras[s.camera] ? s.camera : "a";
   // r = quantas larguras do quadro a câmera 16:9 ocupa quando preenche a altura (1 no 16:9; ≈3,16 no 9:16)
@@ -95,7 +98,7 @@ const Plano: React.FC<{ s: Seg; atraso: number; dur: number }> = ({ s, atraso, d
     <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>
       {/* A câmera inteira antes do pan: com width 100 % + cover o navegador já cortaria o 9:16 no centro e o pan até
           um rosto fora do centro mostraria uma faixa preta. Largura r×100 %, centrada; o pan entra como tx / r. */}
-      <OffthreadVideo src={staticFile(arquivo)} muted trimBefore={Math.max(0, f(s.de + cam.offset) + atraso)}
+      <OffthreadVideo src={staticFile(arquivo)} muted trimBefore={Math.max(0, f(s.de + cam.offset + desloca) + atraso)}
         style={{ position: "absolute", top: 0, left: `${(-(r - 1) / 2) * 100}%`, width: `${r * 100}%`, height: "100%",
           objectFit: "cover", filter: `url(#cor-${id}) brightness(${(s.exposicao ?? 1) * tl.cor.luz})`,
           transform: `translate(${(tx / r) * 100}%, ${ty * 100}%) scale(${z})` }} />
@@ -188,6 +191,56 @@ const Cta: React.FC = () => {
   );
 };
 
+// ── B-roll e assets fornecidos (o editor manipula, não gera): por cima da fala, que continua por baixo ──
+type Ins = Timeline["insercoes"][number];
+const Insercao: React.FC<{ x: Ins; ini: number; dur: number }> = ({ x, ini, dur }) => {
+  const { tl, f, fps, SEGS } = useTl();
+  const fr = useCurrentFrame();
+  const { width, height } = useVideoConfig();
+  const vertical = width < height;
+  const k = x.movimento === "push" ? interpolate(fr, [0, Math.max(1, dur)], [1, 1 + x.push], { easing: suave, extrapolateLeft: "clamp", extrapolateRight: "clamp" }) : 1;
+  const midia = (estilo: React.CSSProperties) => x.tipo === "video"
+    ? <OffthreadVideo src={staticFile(x.asset)} muted transparent={x.alfa} trimBefore={f(x.inicioClipe)} style={estilo} />
+    : <Img src={staticFile(x.asset)} style={estilo} />;
+  const cheio = () => midia({ position: "absolute", width: "100%", height: "100%",
+    objectFit: x.ajuste === "conter" ? "contain" : "cover", objectPosition: `${x.foco[0] * 100}% ${x.foco[1] * 100}%`,
+    transform: `scale(${k})`, transformOrigin: `${x.foco[0] * 100}% ${x.foco[1] * 100}%` });
+  // "lado" só existe no 16:9: a pessoa fica na metade dela, o asset na outra. No 9:16 não há lado: vira "cheio".
+  if (x.modo === "cheio" || (x.modo === "lado" && vertical)) {
+    return <AbsoluteFill style={{ backgroundColor: "#000", overflow: "hidden" }}>{cheio()}</AbsoluteFill>;
+  }
+  if (x.modo === "lado") {
+    const metade = { w: width / 2, h: height };
+    const t0 = ini / fps;
+    // a fala por baixo continua: desenha, na metade esquerda, o plano de cada segmento que o B-roll atravessa
+    const pedacos = SEGS.filter((s) => s.emTimeline < t0 + dur / fps && s.emTimeline + s.ate - s.de > t0);
+    return (
+      <AbsoluteFill style={{ backgroundColor: "#000" }}>
+        <div style={{ position: "absolute", left: 0, top: 0, width: "50%", height: "100%", overflow: "hidden" }}>
+          {pedacos.map((s, i) => {
+            const de = Math.max(0, f(s.emTimeline) - ini), ate = Math.min(dur, f(s.emTimeline + s.ate - s.de) - ini);
+            return (
+              <Sequence key={i} from={de} durationInFrames={Math.max(1, ate - de)}>
+                <Plano s={{ ...s, push: 0 }} atraso={0} dur={ate - de} caixa={metade} desloca={Math.max(0, t0 - s.emTimeline)} />
+              </Sequence>
+            );
+          })}
+        </div>
+        <div style={{ position: "absolute", left: "50%", top: 0, width: "50%", height: "100%", overflow: "hidden" }}>{cheio()}</div>
+      </AbsoluteFill>
+    );
+  }
+  // sobreposto: PNG transparente (logo, selo, tela) numa posição que não tapa rosto nem legenda
+  const p = x.posicao, w = p.largura * width;
+  return (
+    <AbsoluteFill>
+      <div style={{ position: "absolute", left: p.x * width - w / 2, top: p.y * height, width: w, transform: `translateY(-50%) scale(${k})` }}>
+        {midia({ width: "100%", height: "auto", display: "block" })}
+      </div>
+    </AbsoluteFill>
+  );
+};
+
 export const Teaser: React.FC<Timeline> = (props) => {
   const d = useMemo(() => derivar(props), [props]);
   const { tl, f, SEGS, FIM_FALA, naTimeline } = d;
@@ -212,6 +265,12 @@ export const Teaser: React.FC<Timeline> = (props) => {
           return <Sequence key={`a${i}`} from={de} durationInFrames={Math.max(1, dur)}><Voz s={s} d={dur} /></Sequence>;
         })}
         <Musica />
+        {tl.insercoes.map((x, i) => {
+          const ini = naTimeline(x.bruto);
+          if (ini === null) return null;
+          const de = f(ini), dur = Math.max(2, Math.min(f(x.dur), f(FIM_FALA) - de));
+          return <Sequence key={`b${i}`} from={de} durationInFrames={dur}><Insercao x={x} ini={de} dur={dur} /></Sequence>;
+        })}
         {tl.legenda.mostrar && tl.legendas.map((c, i) => {
           const ini = naTimeline(c.bruto);
           if (ini === null) return null;
