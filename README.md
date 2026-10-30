@@ -95,17 +95,18 @@ Segunda câmera: `uv run --no-project --with numpy python scripts/sincronizar.py
 antes de montar; as versões seguintes alternam as câmeras em toda emenda. `ABRIR=0` nos scripts evita que eles abram
 navegador e player.
 
-### Tempos medidos (Linux, Ryzen 7 1800X + RTX 3060 Ti, bruto 1080p de 75 s, teaser de 35 s)
+### Tempos medidos (Linux, Ryzen 7 1800X + RTX 3060 Ti, bruto 1080p de 75 s, teaser de ~30 s com 2 inserções)
 
 | etapa | tempo |
 |---|---|
-| `setup.sh` (com cache do npm) | 5 s |
-| `preparar.py` (proxy NVENC + voz) | 17 s |
-| `transcrever.py` (large-v3, CUDA int8, modelo já baixado) | 15 s |
-| `montar.sh` (timeline + alinhamento da legenda na CPU + rostos) | 18–24 s |
-| Studio no ar | ~3 s + 3 s de build |
-| `preview.sh`, os dois formatos em 480p | 2 min 34 s (~75 s cada) |
-| `export.sh` 1080p, um formato | 79 s |
+| `setup.sh` (com cache do npm) | 5–7 s |
+| `preparar.py` (proxy NVENC + voz + inventário de assets) | 15–17 s |
+| `transcrever.sh` (large-v3, CUDA int8, modelo já baixado) | 15–18 s |
+| `mapear-roteiro.py` (7 falas, áudio de cada take) | 1 s |
+| `montar.sh` (timeline + inserções + alinhamento da legenda na CPU + rosto, luz e foco) | 18–24 s |
+| Studio no ar | ~3 s + 3,5 s de build |
+| `preview.sh`, os dois formatos em 480p | 2 min 30 s – 2 min 50 s (~80 s cada) |
+| `export.sh` 1080p, um formato (teaser de 35 s) | 79 s |
 
 Primeira vez soma o download dos modelos (Whisper ~3 GB, alinhador ~1,2 GB) e dos pacotes do `uv`. O render escala
 com a duração: um teaser de 2 min leva ~4–5 min de preview por formato e ~5 min de export 1080p por formato nessa
