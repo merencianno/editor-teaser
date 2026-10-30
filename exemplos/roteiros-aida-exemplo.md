@@ -1,4 +1,7 @@
-# Roteiros · exemplo fictício (curso de horta em apartamento)
+# Plano B · roteiros AIDA propostos pelo editor (exemplo fictício)
+
+> Só quando não vier roteiro da skill de copy. O caminho normal é a copy aprovada (exemplos/copy-exemplo.md) passar
+> pelo mapa do roteiro no bruto.
 
 > Assunto inventado para mostrar o formato. A minutagem aponta para um bruto imaginário de ~20 min.
 

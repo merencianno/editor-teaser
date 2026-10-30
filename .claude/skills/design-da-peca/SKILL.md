@@ -1,6 +1,6 @@
 ---
 name: design-da-peca
-description: O know-how de design que vai em todo teaser — uma sans com peso, tracking e tamanho por formato, um destaque por texto, nada de enfeite com cara de IA (glow, pop, emoji, borda colorida), nome de marca inteiro, áreas seguras de Reels/TikTok/Shorts, cartela final legível em menos de 3 s com um CTA, contraste e movimento sutil. Use ao escrever a cartela final, mexer em legenda, texto na tela, cor de texto ou animação, ou antes de mostrar qualquer preview.
+description: O design que é da edição (não da marca) — tipografia da legenda e da cartela por formato, um destaque por texto, nada de enfeite com cara de IA (glow, pop, emoji, borda colorida), nome de marca inteiro, áreas seguras de Reels/TikTok/Shorts, cartela legível em menos de 3 s com um CTA, contraste e movimento sutil. Não cria identidade visual. Use ao montar a cartela final, mexer em legenda, texto na tela ou animação, ou antes de mostrar qualquer preview.
 ---
 
 # Design da peça
@@ -8,8 +8,12 @@ description: O know-how de design que vai em todo teaser — uma sans com peso, 
 O vídeo é da pessoa falando; o texto na tela serve a ela. Tudo o que chama atenção para si (efeito, cor, movimento)
 compete com o rosto e perde.
 
+**Esta skill não cria identidade.** Fonte, cor, logo e peças gráficas da marca vêm do design system da sua marca (ou da
+skill de design) como assets e tokens; aqui só se decide como a edição usa isso: tamanho, posição, tempo na tela. Sem
+marca definida, o padrão é neutro (uma sans, branco sobre escuro). Logo e B-roll: skill `assets-e-broll`.
+
 ## Tipografia
-- **Uma família sans** no vídeo inteiro (Instrument Sans por padrão; a da marca, se houver). Hierarquia por tamanho e
+- **Uma família sans** no vídeo inteiro (Instrument Sans por padrão; a do design system da marca, se vier). Hierarquia por tamanho e
   peso, não por fonte nova.
 
 | uso | 9:16 (1080×1920) | 16:9 (1920×1080) | peso | tracking |
@@ -44,6 +48,7 @@ A legenda a 60 % e a cartela (padding 14 % / 25 % / 11 %) já respeitam. Nada de
 - **Legível em menos de 3 s, um CTA** ([Rocketship](https://www.rocketshiphq.com/?p=7229)): título curto (data ou
   promessa), uma linha, no máximo um botão. 4 s na tela.
 - Fundo preto (ou o escuro do próprio vídeo), texto branco; contraste de texto pequeno ≥ 4,5:1.
+- Texto da cartela vem da copy aprovada; cartela desenhada pela marca chega como asset (PNG/MP4) e entra cheia.
 - Sem logo gigante, sem três chamadas, sem QR code se ninguém pediu.
 
 ## Movimento

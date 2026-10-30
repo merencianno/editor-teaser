@@ -1,31 +1,116 @@
 {
   "titulo": "A varanda vazia",
-  "marcas": ["Horta de Varanda"],
+  "marcas": [
+    "Horta de Varanda"
+  ],
   "nomes": [],
   "abertura": 1.0,
   "blocos": [
-    {"nome": "atencao", "trechos": [
-      {"de": "03:41.2", "inicio": "Você não precisa de quintal", "fim": "de dez minutos por dia.",
-       "chave": "Precisa de meio metro de varanda"}
-    ]},
-    {"nome": "interesse", "trechos": [
-      {"de": "07:10.5", "inicio": "Todo mundo já comprou", "fim": "do jeito certo.", "de_fim": "07:26.0"}
-    ]},
-    {"nome": "desejo", "trechos": [
-      {"de": "12:02.0", "inicio": "Quando você acerta essas três coisas", "fim": "o que você plantou.",
-       "chave": "E o almoço de domingo sai com o que você plantou.", "respiroDepois": 1.2}
-    ]},
-    {"nome": "acao", "trechos": [
-      {"de": "18:30.1", "inicio": "No sábado eu abro", "fim": "Vem plantar comigo."}
-    ]}
+    {
+      "nome": "atencao",
+      "trechos": [
+        {
+          "de": "03:41.2",
+          "inicio": "Você não precisa de quintal",
+          "fim": "de dez minutos por dia.",
+          "chave": "Precisa de meio metro de varanda"
+        }
+      ]
+    },
+    {
+      "nome": "interesse",
+      "trechos": [
+        {
+          "de": "07:10.5",
+          "inicio": "Todo mundo já comprou",
+          "fim": "do jeito certo.",
+          "de_fim": "07:26.0"
+        }
+      ]
+    },
+    {
+      "nome": "desejo",
+      "trechos": [
+        {
+          "de": "12:02.0",
+          "inicio": "Quando você acerta essas três coisas",
+          "fim": "o que você plantou.",
+          "chave": "E o almoço de domingo sai com o que você plantou.",
+          "respiroDepois": 1.2
+        }
+      ]
+    },
+    {
+      "nome": "acao",
+      "trechos": [
+        {
+          "de": "18:30.1",
+          "inicio": "No sábado eu abro",
+          "fim": "Vem plantar comigo."
+        }
+      ]
+    }
   ],
   "musica": {
     "hitNaFaixa": 31.4,
     "hitEm": "E o almoço de domingo",
     "volumeSobFala": 0.22,
     "volumeCheio": 0.7,
-    "ajustes": [{"fala": "Vem plantar comigo", "ganho": 0.3, "dur": 2.0, "rampa": 0.8}]
+    "ajustes": [
+      {
+        "fala": "Vem plantar comigo",
+        "ganho": 0.3,
+        "dur": 2.0,
+        "rampa": 0.8
+      }
+    ]
   },
-  "legenda": {"estilo": "padrao", "maxPalavras": 2},
-  "cta": {"titulo": "Sábado, 10h", "linha": "Turma nova do Horta de Varanda", "botao": "", "duracao": 4}
+  "legenda": {
+    "estilo": "padrao",
+    "maxPalavras": 2
+  },
+  "cta": {
+    "titulo": "Sábado, 10h",
+    "linha": "Turma nova do Horta de Varanda",
+    "botao": "",
+    "duracao": 4
+  },
+  "insercoes": [
+    {
+      "asset": "vaso-murcho.mp4",
+      "sobre": "viu ele morrer",
+      "dur": 2.5,
+      "inicio": 0.8,
+      "modo": "cheio",
+      "movimento": "parado",
+      "descricao": "vaso de manjericão murcho na janela de um apartamento, luz de fim de tarde"
+    },
+    {
+      "asset": "varanda-regando.mp4",
+      "sobre": "a varanda muda",
+      "ate": "o que você plantou",
+      "modo": "cheio",
+      "movimento": "push",
+      "push": 0.06,
+      "descricao": "mãos regando ervas numa varanda pequena, plano fechado"
+    },
+    {
+      "asset": "logo-horta.png",
+      "sobre": "turma nova",
+      "dur": 3.0,
+      "modo": "sobreposto",
+      "posicao": {
+        "16x9": {
+          "x": 0.84,
+          "y": 0.2,
+          "largura": 0.2
+        },
+        "9x16": {
+          "x": 0.5,
+          "y": 0.72,
+          "largura": 0.36
+        }
+      }
+    }
+  ]
 }
