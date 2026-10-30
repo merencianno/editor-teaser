@@ -1,0 +1,24 @@
+# pasta de trabalho: brutos, proxies, transcrições, roteiros do projeto, previews e exports
+trabalho/
+out/
+
+# mídia nunca entra no git
+remotion/public/
+*.mp4
+*.mov
+*.mkv
+*.webm
+*.wav
+*.m4a
+*.mp3
+*.aac
+*.flac
+*.ogg
+
+# gerado pelos scripts (as timelines de cada projeto ficam fora do git)
+remotion/src/Composicoes.tsx
+
+node_modules/
+.DS_Store
+__pycache__/
+*.pyc
