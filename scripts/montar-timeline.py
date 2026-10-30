@@ -112,7 +112,8 @@ def main():
                 texto = " ".join(w["w"] for w in dentro)
                 rel.append(f"| {mmss(t)} | {ate - de:4.1f} s | {bloco['nome']} | {mmss(de)} | {cam} | {zoom:.3f}{' chave' if e_chave else ''} | {texto} |")
                 for w in dentro:
-                    ws_tl.append({"w": w["w"], "s": t + max(0.0, w["s"] - de), "e": t + min(w["e"], ate) - de, "bruto": w["s"], "bruto_e": w["e"]})
+                    ws_tl.append({"w": w["w"], "s": t + max(0.0, w["s"] - de), "e": t + min(w["e"], ate) - de, "bruto": w["s"], "bruto_e": w["e"],
+                                  "corte": (de, ate)})
                 t += ate - de
     fim_fala = t
 
@@ -124,7 +125,9 @@ def main():
             frases.append(cur); cur = []
         cur.append(w)
     if cur: frases.append(cur)
-    frases_json = [{"texto": " ".join(x["w"] for x in fr), "inicio": round(fr[0]["bruto"], 3), "fim": round(fr[-1]["bruto_e"], 3)} for fr in frases]
+    # janela do alinhador presa ao corte: a fala que sobra no bruto depois do corte não "estica" a última palavra
+    frases_json = [{"texto": " ".join(x["w"] for x in fr), "inicio": round(fr[0]["bruto"], 3), "fim": round(fr[-1]["bruto_e"], 3),
+                    "janelaInicio": round(fr[0]["corte"][0], 3), "janelaFim": round(fr[-1]["corte"][1], 3)} for fr in frases]
     (vdir / "frases.json").write_text(json.dumps(frases_json, ensure_ascii=False, indent=1))
 
     # ── música: hit na frase-chave; ajustes por fala ──

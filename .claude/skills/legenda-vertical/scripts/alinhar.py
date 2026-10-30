@@ -1,6 +1,8 @@
 """Tempo real de cada palavra: alinhamento forçado (torchaudio MMS_FA) do texto aprovado com a voz.
 
 Entrada: frases.json = [{"texto": "...", "inicio": s, "fim": s}, ...]  (segundos NO ARQUIVO DE ÁUDIO, em ordem de fala)
+         opcionais "janelaInicio"/"janelaFim": limites duros da janela (o corte do vídeo). Sem eles a janela vai até
+         0,8 s depois da frase e, se a fala continua no bruto, a última palavra "estica" sobre o que veio depois.
 Saída:   palavras.json = [{"inicio": s, "palavras": [{"w": "Hoje", "s": 12.05, "e": 12.31}, ...]}, ...]
 
   uv run --no-project --index https://download.pytorch.org/whl/cpu --with torch --with torchaudio --with soundfile \
@@ -37,6 +39,8 @@ def main(voz, entrada, saida):
         # a janela não invade a frase vizinha (senão a última palavra "pega" o som dela)
         if i + 1 < len(frases) and f["inicio"] < frases[i + 1]["inicio"] < a1: a1 = max(f["fim"], frases[i + 1]["inicio"] - 0.05)
         if i and frases[i - 1]["inicio"] < f["inicio"]: a0 = max(a0, min(f["inicio"] - 0.1, frases[i - 1]["fim"]))
+        if "janelaInicio" in f: a0 = max(a0, min(f["janelaInicio"], f["inicio"] - 0.02))
+        if "janelaFim" in f: a1 = min(a1, max(f["janelaFim"], f["fim"] + 0.02))
         wav = audio[int(a0 * SR):int(a1 * SR)].unsqueeze(0)
         pal = f["texto"].split()
         with torch.inference_mode():
