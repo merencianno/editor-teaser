@@ -40,7 +40,8 @@ def main():
 
     out, linhas = [], []
     def junta(inicio, fim, texto, palavras):
-        ws = [{"w": w.strip(), "s": round(s, 2), "e": round(e, 2)} for w, s, e in palavras if w.strip()]
+        # p = confiança do Whisper na palavra: o mapa do roteiro usa para escolher o take mais limpo
+        ws = [{"w": w.strip(), "s": round(s, 2), "e": round(e, 2), "p": round(float(p), 3)} for w, s, e, p in palavras if w.strip()]
         out.append({"start": round(inicio, 2), "end": round(fim, 2), "text": texto.strip(), "words": ws})
         linhas.append(f"[{mmss(inicio)}–{mmss(fim)}] {texto.strip()}")
         print(linhas[-1], flush=True)
@@ -50,7 +51,7 @@ def main():
         repo = "mlx-community/whisper-large-v3-mlx" if a.modelo == "large-v3" else a.modelo
         r = mlx_whisper.transcribe(audio, path_or_hf_repo=repo, language=a.idioma, word_timestamps=True)
         for s in r["segments"]:
-            junta(s["start"], s["end"], s["text"], [(w["word"], w["start"], w["end"]) for w in s.get("words", [])])
+            junta(s["start"], s["end"], s["text"], [(w["word"], w["start"], w["end"], w.get("probability", 1.0)) for w in s.get("words", [])])
     else:
         from faster_whisper import WhisperModel
         modelo = None
@@ -63,7 +64,7 @@ def main():
             modelo = WhisperModel(a.modelo, device="cpu", compute_type="int8"); print("whisper: CPU int8")
         segs, _ = modelo.transcribe(audio, language=a.idioma, word_timestamps=True, vad_filter=False, beam_size=2)
         for s in segs:
-            junta(s.start, s.end, s.text, [(w.word, w.start, w.end) for w in (s.words or [])])
+            junta(s.start, s.end, s.text, [(w.word, w.start, w.end, w.probability) for w in (s.words or [])])
     d = pasta(a.projeto)
     (d / "palavras.json").write_text(json.dumps(out, ensure_ascii=False, indent=1))
     (d / "transcricao.md").write_text("# Transcrição (Whisper, conferir no áudio toda fala citada)\n\n" + "\n".join(linhas) + "\n")
