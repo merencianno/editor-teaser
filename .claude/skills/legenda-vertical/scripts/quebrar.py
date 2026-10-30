@@ -1,6 +1,6 @@
 """Palavras alinhadas → pedaços de legenda no padrão vertical (no máximo 2 palavras, no tempo da fala).
 
-  python3 quebrar.py palavras.json legendas.json [--nomes "Marta,Lisboa"] [--marcas "Horta Fácil"]
+  python3 quebrar.py palavras.json legendas.json [--nomes "Marta,Lisboa"] [--marcas "Horta Fácil"] [--max-palavras 2]
 Saída: [{"texto": "um momento", "ini": 12.17, "fim": 12.51}, ...]  (segundos no arquivo de áudio)
 """
 import argparse, json, re, unicodedata
@@ -28,16 +28,21 @@ def junta_marcas(ws, marcas):
     return out
 
 
-def pedacos(ws):
-    """em pares; palavra de ligação nunca pisca sozinha ("a / sua casa") nem fecha o par ("medo do / meu")"""
+def pedacos(ws, n=2):
+    """grupos de até n palavras (padrão 2) ditas em sequência; palavra de ligação nunca pisca sozinha ("a / sua
+    casa") nem fecha o grupo quando a seguinte vem colada ("medo do / meu" → "medo / do meu")"""
     out, i = [], 0
     while i < len(ws):
-        w = ws[i]; nx = ws[i + 1] if i + 1 < len(ws) else None; nn = ws[i + 2] if i + 2 < len(ws) else None
-        junta = nx is not None and not w.get("marca") and not nx.get("marca") and not pont(w["w"]) and nx["s"] - w["e"] <= JUNTA
-        if junta and norm(nx["w"]) in COLA and norm(w["w"]) not in COLA and nn is not None and not pont(nx["w"]) \
-                and nn["s"] - nx["e"] <= JUNTA:
-            junta = False
-        out.append([w, nx] if junta else [w]); i += 2 if junta else 1
+        g = [ws[i]]
+        while len(g) < n and i + len(g) < len(ws):
+            nx, ult = ws[i + len(g)], g[-1]
+            if ult.get("marca") or nx.get("marca") or pont(ult["w"]) or nx["s"] - ult["e"] > JUNTA: break
+            g.append(nx)
+        while len(g) > 1 and norm(g[-1]["w"]) in COLA and norm(g[-2]["w"]) not in COLA and not pont(g[-1]["w"]):
+            nn = ws[i + len(g)] if i + len(g) < len(ws) else None
+            if nn is None or nn["s"] - g[-1]["e"] > JUNTA: break
+            g.pop()
+        out.append(g); i += len(g)
     return out
 
 
@@ -51,6 +56,7 @@ def limpa(w, nomes, marca=False):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument("entrada"); ap.add_argument("saida")
     ap.add_argument("--nomes", default=""); ap.add_argument("--marcas", default="")
+    ap.add_argument("--max-palavras", type=int, default=2, help="2 no padrão; outro número só num estilo irmão")
     a = ap.parse_args()
     frases = json.load(open(a.entrada))
     marcas = [m.strip() for m in a.marcas.split(",") if m.strip()]
@@ -59,7 +65,7 @@ def main():
         ps = [x["w"] for x in f["palavras"]]
         for i, w in enumerate(ps):
             if i and not pont(ps[i - 1]) and w[:1].isupper() and norm(w) != "eu": nomes.add(norm(w))
-    todos = [p for f in frases for p in pedacos(junta_marcas(f["palavras"], marcas))]
+    todos = [p for f in frases for p in pedacos(junta_marcas(f["palavras"], marcas), a.max_palavras)]
     out = []
     for k, p in enumerate(todos):
         ini = p[0]["s"] - ANTES

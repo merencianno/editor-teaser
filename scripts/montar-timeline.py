@@ -167,7 +167,7 @@ def main():
                     "arco": {"inicio": {"temperatura": -0.03, "saturacao": 0.9}, "fim": {"temperatura": 0.03, "saturacao": 1.0}}},
             "abertura": rot.get("abertura", 1.0),
             "segmentos": segs,
-            "legenda": {"mostrar": vert, "tamanho": 86 if vert else 60, "peso": 550, "topo": 0.6 if vert else 0.64, "cor": "#ffffff"},
+            "legenda": {"mostrar": vert, "estilo": "padrao", "tamanho": 86 if vert else 60, "peso": 550, "topo": 0.6 if vert else 0.64, "cor": "#ffffff"},
             "legendas": [],
             "musica": musica,
             "cta": {"duracao": cta.get("duracao", 4.0), "titulo": cta.get("titulo", ""), "linha": cta.get("linha", ""),

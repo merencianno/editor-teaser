@@ -60,6 +60,7 @@ export const timeline = z.object({
   segmentos: z.array(segmento),
   legenda: z.object({
     mostrar: z.boolean(),
+    estilo: z.string().describe("padrao ou um estilo criado pela skill nova-referencia (remotion/src/legendas)"),
     tamanho: z.number().min(24).max(140).describe("px na largura de 1080 (86 aprovado no 9:16)"),
     peso: z.number().min(300).max(800),
     topo: z.number().min(0.4).max(0.9).describe("altura do topo da legenda (0,6 = pescoço, logo abaixo da boca)"),

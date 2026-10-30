@@ -26,7 +26,8 @@ def main():
     voz = RAIZ / "remotion/public" / pj["fontes"]["voz"]
     subprocess.run(UV_TORCH + [str(SKILL / "alinhar.py"), str(voz), str(vdir / "frases.json"), str(vdir / "palavras-alinhadas.json")], check=True)
     subprocess.run([sys.executable, str(SKILL / "quebrar.py"), str(vdir / "palavras-alinhadas.json"), str(vdir / "legendas.json"),
-                    "--nomes", nomes, "--marcas", marcas], check=True)
+                    "--nomes", nomes, "--marcas", marcas,
+                    "--max-palavras", str((rot.get("legenda") or {}).get("maxPalavras", 2))], check=True)
     pedacos = json.loads((vdir / "legendas.json").read_text())
     legendas = [{"bruto": p["ini"], "fim": p["fim"], "texto": p["texto"]} for p in pedacos]
     for comp in composicoes(a.projeto, v):

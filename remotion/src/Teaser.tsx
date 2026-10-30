@@ -7,6 +7,7 @@ import { createContext, useContext, useMemo } from "react";
 import {
   AbsoluteFill, Audio, Easing, OffthreadVideo, Sequence, interpolate, staticFile, useCurrentFrame, useVideoConfig,
 } from "remotion";
+import { ESTILOS } from "./legendas";
 import type { Timeline } from "./schema";
 
 const { fontFamily: SANS } = loadFont("normal", { weights: ["400", "500", "600", "700"], subsets: ["latin", "latin-ext"] });
@@ -137,23 +138,6 @@ const Musica: React.FC = () => {
   );
 };
 
-// ── legenda: até 2 palavras, sem animação (entra e sai seca), na altura do pescoço ──
-const Legenda: React.FC<{ texto: string }> = ({ texto }) => {
-  const { tl } = useTl();
-  const { width } = useVideoConfig();
-  const L = tl.legenda;
-  const escala = Math.min(width, 1080) / 1080;
-  return (
-    <AbsoluteFill style={{ alignItems: "center" }}>
-      <p style={{ position: "absolute", top: `${L.topo * 100}%`, margin: 0, fontFamily: SANS, fontWeight: L.peso,
-        fontSize: L.tamanho * escala, lineHeight: 1.05, letterSpacing: "-0.015em", color: L.cor, textAlign: "center",
-        maxWidth: width * 0.86, whiteSpace: "nowrap", textShadow: "0 2px 6px rgb(0 0 0 / 0.55), 0 0 30px rgb(0 0 0 / 0.35)" }}>
-        {texto}
-      </p>
-    </AbsoluteFill>
-  );
-};
-
 // ── abertura: nasce do preto ──
 const Abertura: React.FC = () => {
   const { tl, f } = useTl();
@@ -208,6 +192,7 @@ export const Teaser: React.FC<Timeline> = (props) => {
   const d = useMemo(() => derivar(props), [props]);
   const { tl, f, SEGS, FIM_FALA, naTimeline } = d;
   const atraso = tl.transicao.atrasoImagem;
+  const Legenda = ESTILOS[tl.legenda.estilo] ?? ESTILOS.padrao;
   return (
     <Ctx.Provider value={d}>
       <AbsoluteFill style={{ backgroundColor: "#000" }}>
@@ -233,7 +218,7 @@ export const Teaser: React.FC<Timeline> = (props) => {
           const prox = tl.legendas.slice(i + 1).map((n) => naTimeline(n.bruto)).find((x) => x !== null);
           // duração mínima de 2 quadros e nunca por cima da seguinte
           const dur = Math.max(2, Math.min(f(c.fim - c.bruto), prox != null ? f(prox) - f(ini) : Infinity, f(FIM_FALA) - f(ini)));
-          return <Sequence key={`l${i}`} from={f(ini)} durationInFrames={dur}><Legenda texto={c.texto} /></Sequence>;
+          return <Sequence key={`l${i}`} from={f(ini)} durationInFrames={dur}><Legenda texto={c.texto} estilo={tl.legenda} fonte={SANS} /></Sequence>;
         })}
         <Abertura />
         <Cta />
