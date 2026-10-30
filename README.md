@@ -1,91 +1,99 @@
 # editor-teaser
 
-Um repositório para o Claude Code editar teasers de **talking head** (uma pessoa falando para a câmera). Você clona,
-joga o vídeo bruto e diz **"vamos editar"**. O Claude transcreve, propõe roteiros em texto, monta a timeline num
-projeto [Remotion](https://www.remotion.dev/) que você ajusta num painel, mostra um preview leve e só então exporta:
+**Este editor não escreve a copy nem cria os assets; ele edita.** É um repositório para o Claude Code editar teasers
+de **talking head** (uma pessoa falando para a câmera): você entrega o vídeo bruto, o roteiro ou a copy já aprovada e
+os assets (B-roll, fotos, logo, trilha), e diz **"vamos editar"**. O Claude acha cada fala do roteiro no melhor take,
+encaixa os assets, monta a timeline num projeto [Remotion](https://www.remotion.dev/) que você ajusta num painel,
+mostra um preview leve e só então exporta:
 
 - **teaser 16:9** (site, YouTube, apresentação);
 - **vertical 9:16** (Reels, TikTok, Shorts) com legenda palavra a palavra no padrão aprovado.
 
-Você revisa e decide; ele corta, alinha, mede e renderiza.
+**Você não precisa de terminal.** O Claude roda tudo e abre o Studio, os previews e as pastas para você; você só
+conversa e aprova.
 
 **Primeira vez? Comece pelo [TUTORIAL.md](TUTORIAL.md)** (passo a passo no Mac, da instalação ao export).
+
+## O que vem de fora
+
+| o quê | de onde vem | o editor faz |
+|---|---|---|
+| roteiro / copy | skill de copy ou roteiro, ou o time (texto, .md, .docx) | acha cada fala nos takes do bruto, monta a ordem, aponta o que falta |
+| B-roll, fotos, telas, logo, cartela desenhada | skill de design, design system da sua marca, ou o time | corta pela ação, posiciona, recorta para o 9:16, move com sutileza |
+| trilha | biblioteca licenciada ou o time | põe o hit na frase-chave, faz o ducking e as rampas |
+
+Faltou um asset? O Claude escreve `trabalho/<projeto>/assets-pedido.md` (o quê, para qual fala, formato, duração) para
+você pedir a quem faz. Ele não gera B-roll, imagem, logo nem música. Sem roteiro, ele pode propor um rascunho em AIDA a
+partir das falas, avisando que o ideal é o roteiro vir da skill de copy.
 
 ## Por que é assim
 
 Cada regra abaixo veio de um corte reprovado ou de uma fonte de editor (as fontes estão nas skills).
 
-- **Roteiro AIDA antes de tudo** (atenção, interesse, desejo, ação), com **gancho nos primeiros 5 s falando com quem
-  assiste**. Um trailer reordena falas de um bruto longo para caber num arco de 1–2 min; sem estrutura vira uma lista
-  de frases bonitas que ninguém acompanha.
-- **Blocos longos, de 8 a 20 s**, com o pensamento inteiro. A primeira tentativa, uma colcha de frases de 2 s tiradas de
-  pontos diferentes, foi reprovada: a voz pula de tom e a fala perde continuidade. Poucos cortes, escondidos.
+- **Roteiro no bruto antes de tudo.** O roteiro aprovado vira um mapa: cada fala → o melhor take (texto fiel,
+  Whisper seguro, sem tropeço) → minutagem e duração, com o áudio de cada take para ouvir, e o que o roteiro pede e o
+  bruto não tem. O AIDA (gancho nos primeiros 5 s falando com quem assiste, frase-chave, CTA) vira checagem de
+  estrutura.
+- **Blocos longos, de 8 a 20 s**, com o pensamento inteiro. Uma colcha de frases de 2 s tiradas de pontos diferentes
+  foi reprovada: a voz pula de tom e a fala perde continuidade. Poucos cortes, escondidos (troca de tamanho ou B-roll).
 - **Zoom 100 / 107,5 % e punch-in de 115 % só na frase-chave.** Pular de 100 para 170 % a cada corte parecia rotação e
   cansava. Cena nova abre a 100 %; jump cut alterna 100/107,5.
-- **Push-in lento de 5–10 % com easing**, nas aberturas de ideia e na frase-chave; o resto quase parado.
-- **Respiro só nos 3–4 momentos pesados** (revelação, sorriso, pausa emocionada). Nos outros, a pausa natural da fala.
-- **A música manda no ritmo** e o **hit cai na frase-chave**; trilha baixa sob a voz (ducking), rampas sem degrau, a
-  música cai para uma frase soar sozinha (turn line). Sem trilha não há corte "épico" para aprovar.
-- **Legenda de no máximo 2 palavras**, no tempo exato da fala (alinhamento forçado, não o tempo do Whisper), sem
-  animação, minúscula e sem pontuação, na altura do pescoço. Legenda grande tapando a boca e animação de entrada foram
-  reprovadas.
-- **Três portões: texto → preview → export.** O roteiro é aprovado em texto; o vídeo, num preview 480p dos proxies
-  (minutos); o export final só depois. Exportar sem preview já custou uma hora de render.
+- **Push-in lento de 5–10 % com easing**, nas aberturas de ideia, na frase-chave e nas fotos paradas; o resto quase
+  parado.
+- **B-roll cortado pela ação do clipe**, não por duração fixa: corte de 2–4 s, sequência de 6–8 s, ancorado na palavra
+  que ilustra, sem cobrir a frase-chave nem o respiro, com rosto e legenda livres.
+- **Respiro só nos 3–4 momentos pesados** (revelação, sorriso, pausa emocionada).
+- **A música manda no ritmo** e o **hit cai na frase-chave**; ducking sob a voz, rampas sem degrau, turn line.
+- **Legenda de no máximo 2 palavras**, no tempo exato da fala (alinhamento forçado), sem animação, minúscula e sem
+  pontuação, na altura do pescoço. Legenda grande tapando a boca e animação de entrada foram reprovadas.
+- **Portões: roteiro no bruto → preview → export.** O vídeo é aprovado num preview 480p dos proxies (minutos); o
+  export final só depois. Exportar sem preview já custou uma hora de render.
 - **O bruto nunca é alterado; versão nova nunca sobrescreve; nada pesado no git.**
 
-## Instalação
+## Como é o uso
 
-Feito e testado em **Linux com GPU NVIDIA** (Whisper em CUDA, proxies em NVENC). Mac: veja o fim deste arquivo.
+Tudo acontece numa conversa com o Claude (o [TUTORIAL.md](TUTORIAL.md) tem as frases para mandar):
 
-1. Ferramentas: `ffmpeg`, `node` ≥ 18 (com `npm`), [`uv`](https://docs.astral.sh/uv/) e o Claude Code.
-   Driver NVIDIA instalado para usar a GPU (as bibliotecas CUDA do Whisper vêm pelo próprio `uv`).
-2. ```bash
-   git clone <este repositório> editor-teaser && cd editor-teaser
-   bash scripts/setup.sh            # confere as ferramentas, instala o Remotion
-   bash scripts/setup.sh --aquecer  # opcional: já baixa o Whisper large-v3 (~3 GB) e o alinhador (~1,2 GB)
-   ```
+1. **Instalar:** "instala o editor-teaser pra mim…" (uma vez). No Mac, antes, o instalador .pkg do Homebrew.
+2. **Começar:** "vamos editar" + o vídeo, o roteiro aprovado, os assets e a trilha.
+3. **Portão 1 · roteiro no bruto:** ele mostra o mapa (fala → take → minutagem → duração, onde entram corte, respiro e
+   hit) e abre a pasta com o áudio de cada take para você ouvir. Você aprova ou troca takes.
+4. **Montagem e Studio:** ele monta `Teaser16x9-<projeto>-vN` e `Teaser9x16-<projeto>-vN` e abre o Remotion Studio no
+   navegador. Aba **Props** à direita: planos (`segmentos`), B-roll (`insercoes`), legenda, música e cartela são
+   campos. Ou só peça: "logo menor", "a legenda das 0:12 está adiantada".
+5. **Portão 2 · preview:** ele renderiza os dois formatos em 480p e abre os arquivos. Você assiste e diz "pode
+   exportar" (ou o que mudar).
+6. **Export:** 1080p (ou 2K/4K, se o bruto tiver resolução), e ele abre a pasta do resultado.
 
-## Primeiro uso
+Referência nova de estilo ("quero a legenda desse reel"): a skill `nova-referencia` mede o que ela faz e cria uma
+skill irmã (ex.: `legenda-documentario`) sem mexer na padrão, e pede o seu ok antes de usar.
 
-```bash
-claude
-> vamos editar ~/Videos/bruto-entrevista.mp4
-```
+## Para quem prefere o terminal
 
-O que acontece (skill `editar-teaser`):
+Nada disso é necessário para usar com o Claude; é o mesmo fluxo à mão.
 
-1. **Preparar:** proxy 1080p com quadro-chave a cada 15 quadros, voz em −16 LUFS, tudo em `trabalho/<projeto>/`.
-2. **Transcrever** por palavra (faster-whisper large-v3). Ele pergunta pela trilha e pelo texto da cartela final.
-3. **Portão 1:** 2–3 roteiros AIDA em texto, com minutagem de cada fala, frase-chave, imagem e música por bloco.
-   Você escolhe e ajusta no texto.
-4. **Montar:** a versão `v1` vira duas composições, `Teaser16x9-<projeto>-v1` e `Teaser9x16-<projeto>-v1`, com
-   legenda alinhada e o recorte vertical seguindo o rosto.
-5. **Studio:** ele abre o Remotion Studio (`http://localhost:3123`). Aba **Props** à direita: cada plano (`de`/`ate` no
-   bruto, câmera, zoom, push), cada pedaço de legenda, volumes da música e textos da cartela são campos; o vídeo muda
-   na hora; o botão de salvar grava.
-6. **Portão 2:** preview 480p dos dois formatos em `trabalho/<projeto>/v1/`. Você assiste e diz "pode exportar" (ou o
-   que mudar).
-7. **Export:** 1080p (ou 2K/4K, se o bruto tiver resolução) em `trabalho/<projeto>/v1/final-*.mp4`.
-
-Referência nova de estilo ("quero a legenda desse reel"): mande o vídeo ou o link; a skill `nova-referencia` mede o que
-ele faz e cria uma skill irmã (ex.: `legenda-documentario`) sem mexer na padrão, e pede o seu ok antes de usar.
-
-### Comandos, se quiser rodar à mão
+Ferramentas: `ffmpeg`, `node` ≥ 18 (com `npm`), [`uv`](https://docs.astral.sh/uv/), `git`. GPU NVIDIA opcional (o
+Whisper usa CUDA; as bibliotecas vêm pelo próprio `uv`).
 
 ```bash
+git clone https://github.com/merencianno/editor-teaser.git ~/editor-teaser && cd ~/editor-teaser
+bash scripts/setup.sh --aquecer                       # ferramentas, Remotion e modelos (~4 GB, uma vez)
+
+# assets fornecidos em trabalho/meu-teaser/assets/
 python3 scripts/preparar.py meu-teaser ~/Videos/bruto.mp4 --musica ~/Musicas/trilha.mp3
-uv run --no-project --with faster-whisper --with nvidia-cublas-cu12 --with "nvidia-cudnn-cu12==9.*" \
-  python scripts/transcrever.py meu-teaser
-# escreva trabalho/meu-teaser/roteiro.json (modelo: exemplos/roteiro-exemplo.json)
+bash scripts/transcrever.sh meu-teaser
+python3 scripts/mapear-roteiro.py meu-teaser ~/Documentos/roteiro-aprovado.md   # portão 1
+# complete trabalho/meu-teaser/roteiro.json a partir do roteiro-rascunho.json (modelo: exemplos/roteiro-exemplo.json)
 bash scripts/montar.sh meu-teaser trabalho/meu-teaser/roteiro.json
-bash scripts/studio.sh
-bash scripts/preview.sh meu-teaser v1
+bash scripts/studio.sh                                # abre http://localhost:3123
+bash scripts/preview.sh meu-teaser v1                 # portão 2
 echo "2026-01-01 · 'pode exportar'" > trabalho/meu-teaser/v1/APROVADO
 bash scripts/export.sh meu-teaser v1 1080
 ```
 
 Segunda câmera: `uv run --no-project --with numpy python scripts/sincronizar.py meu-teaser ~/Videos/camera-b.mp4`
-antes de montar; as versões seguintes alternam as câmeras em toda emenda.
+antes de montar; as versões seguintes alternam as câmeras em toda emenda. `ABRIR=0` nos scripts evita que eles abram
+navegador e player.
 
 ### Tempos medidos (Linux, Ryzen 7 1800X + RTX 3060 Ti, bruto 1080p de 75 s, teaser de 35 s)
 
@@ -106,22 +114,25 @@ máquina; 4K, bem mais.
 ## Estrutura
 
 ```
-README.md · CLAUDE.md · LICENSE (MIT)
+README.md · TUTORIAL.md · CLAUDE.md · LICENSE (MIT)
 .claude/skills/
   editar-teaser/     fluxo mestre com os portões
-  roteiro-aida/      gancho, blocos longos, ordem do roteiro, fala conferida, 2–3 roteiros em texto
+  roteiro-no-bruto/  roteiro/copy aprovado → melhor take de cada fala, mapa, o que falta; AIDA como checagem e plano B
+  assets-e-broll/    inventário, inserções ancoradas na fala, regras de B-roll, pedido do que falta (não gera)
   ritmo-e-corte/     corte, câmera, tamanho, zoom, atraso da imagem, crop de 4K (com fontes)
   som-e-musica/      voz −16 LUFS, ducking, rampas, hit, turn line, licença
   cor-e-pele/        primária, casar câmeras pela pele, 45–70 IRE, arco frio → quente
   legenda-vertical/  o padrão aprovado (scripts alinhar/quebrar + componente de referência)
   nova-referencia/   referência → skill irmã medida, com ok antes de usar
-  design-da-peca/    tipografia por formato, um destaque, sem enfeite de IA, áreas seguras, cartela < 3 s
+  design-da-peca/    tipografia da legenda e da cartela, áreas seguras, sem enfeite de IA (não cria identidade)
 remotion/            template: Teaser.tsx (16:9 e 9:16 da mesma timeline), schema.ts (painel Props), legendas/
                      public/ e src/Composicoes.tsx são gerados e ficam fora do git
-scripts/             preparar, transcrever, falas, sincronizar, montar-timeline, legendas, rostos, montar.sh,
-                     props.mjs, studio.sh, preview.sh, export.sh, musica-picos, conferir-quadros
-exemplos/            roteiro em texto, roteiro.json e frases fictícios (curso de horta em apartamento)
-trabalho/            (fora do git) um diretório por projeto: proxies, voz, transcrição, versões, previews, exports
+scripts/             setup, preparar, transcrever(.sh), mapear-roteiro, assets, falas, sincronizar, montar-timeline,
+                     legendas, rostos, montar.sh, props.mjs, studio.sh, preview.sh, export.sh, abrir.sh,
+                     musica-picos, conferir-quadros
+exemplos/            copy de entrada, roteiro.json com inserções, roteiros AIDA (plano B) e frases, todos fictícios
+trabalho/            (fora do git) um diretório por projeto: assets/, proxies, voz, transcrição, mapa, versões,
+                     previews, exports
 ```
 
 ## Créditos
@@ -141,26 +152,25 @@ Licença deste repositório: MIT.
 ## Adaptações para Mac (Apple Silicon)
 
 > **Não testado.** Tudo acima foi feito e medido em Linux com GPU NVIDIA. O que segue é o que muda no Mac, pelo que as
-> ferramentas documentam; confira no primeiro uso e corrija aqui.
+> ferramentas documentam; confira no primeiro uso e corrija aqui (peça ao Claude: "anota isso nas Adaptações para Mac").
 
-- **Instalação:** `brew install ffmpeg uv node`. O `setup.sh` é o mesmo.
+- **Homebrew sem terminal:** o instalador oficial em linha de comando pede a senha de administrador, e o Claude não
+  digita senha. Use o **instalador .pkg** em [github.com/Homebrew/brew/releases/latest](https://github.com/Homebrew/brew/releases/latest)
+  (baixe o `Homebrew-….pkg`, duplo clique, senha na janela do macOS). Se o macOS pedir as **Ferramentas de Linha de
+  Comando**, clique em Instalar. Depois disso o `setup.sh` instala `ffmpeg uv node git` pelo `brew` sozinho (sem senha).
 - **Encoder dos proxies:** `scripts/comum.py` testa NVENC, depois **`h264_videotoolbox`** e por fim x264; no Mac fica
   VideoToolbox sozinho. Para a fonte do export de um bruto 4K, `hevc_videotoolbox` gera arquivos menores
   (troque em `encoder()` se o disco apertar). `ENCODER=x264` força a CPU se o VideoToolbox der problema.
-- **Whisper:** sem CUDA. Duas opções:
-  - CPU int8 (o padrão sem GPU): `uv run --no-project --with faster-whisper python scripts/transcrever.py <projeto> --cpu`.
-    Large-v3 na CPU de um M1/M2 deve levar da ordem do tempo real (20 min de fala ≈ 15–30 min). Para ir mais rápido,
-    `--modelo large-v3-turbo` ou `--modelo medium` (perde um pouco em nome próprio).
-  - **mlx-whisper** na GPU do Mac: `uv run --no-project --with mlx-whisper python scripts/transcrever.py <projeto> --motor mlx`
-    (bem mais rápido que a CPU; mesmo formato de saída).
-  - Não use os pacotes `nvidia-*` no comando: eles não existem para Mac e o `uv` falha.
+- **Whisper:** sem CUDA. O `scripts/transcrever.sh` escolhe sozinho o **mlx-whisper** (GPU do Mac, modelo
+  `mlx-community/whisper-large-v3-mlx`, baixado pelo `setup.sh --aquecer`). Alternativa: CPU int8
+  (`transcrever.py --cpu`), da ordem do tempo real num M1/M2 (20 min de fala ≈ 15–30 min); `--modelo large-v3-turbo`
+  acelera. Os pacotes `nvidia-*` não existem para Mac e não entram no comando.
 - **Alinhamento da legenda (torch):** roda na CPU, que basta (~10–20 s por minuto de fala). No Mac o `legendas.py` não
-  usa o índice CPU do PyTorch (o torch do PyPI já é CPU/MPS). `device="mps"` no `alinhar.py` é possível, mas não foi
-  necessário nem testado.
+  usa o índice CPU do PyTorch (o torch do PyPI já é CPU/MPS).
+- **Abrir coisas:** `scripts/abrir.sh` usa `open` (Studio no navegador padrão, previews no QuickTime, pastas no Finder).
 - **Render (Remotion):** igual; o Chrome headless baixa a versão arm64. O render usa CPU; num M-series de 8–10 núcleos
-  espere algo parecido com os tempos acima (preview em minutos, export 1080p de 1 min em ~5–15 min). Ajuste
-  `CONCORRENCIA` (padrão: metade dos núcleos) se o Mac esquentar ou o conferidor acusar quadros repetidos. O Remotion tem
-  `--hardware-acceleration=if-possible` (VideoToolbox) para o encode final no Mac; não está ligado no `export.sh`
-  porque não foi testado com `--crf`.
+  espere algo parecido com os tempos acima. Ajuste `CONCORRENCIA` (padrão: metade dos núcleos) se o Mac esquentar ou o
+  conferidor acusar quadros repetidos. O Remotion tem `--hardware-acceleration=if-possible` (VideoToolbox) para o
+  encode final no Mac; não está ligado no `export.sh` porque não foi testado com `--crf`.
 - **Disco:** `trabalho/` cresce rápido (proxy 1080p ≈ 1 GB por 15 min; fonte 4K ≈ 5–7 GB por 20 min). Hardlinks
   funcionam no APFS; em disco externo o script copia.
