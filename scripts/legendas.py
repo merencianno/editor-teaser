@@ -11,8 +11,11 @@ import argparse, json, subprocess, sys
 from comum import RAIZ, composicoes, ler_projeto, pasta, props_get, props_grava, versao_arg
 
 SKILL = RAIZ / ".claude/skills/legenda-vertical/scripts"
-UV_TORCH = ["uv", "run", "--no-project", "--index", "https://download.pytorch.org/whl/cpu",
-            "--with", "torch", "--with", "torchaudio", "--with", "soundfile", "--with", "numpy", "python"]
+# Linux: o índice CPU do PyTorch evita baixar ~2 GB de CUDA à toa (o alinhador é leve). Mac: o torch do PyPI já é
+# CPU/MPS, sem índice extra.
+INDICE = [] if sys.platform == "darwin" else ["--index", "https://download.pytorch.org/whl/cpu"]
+UV_TORCH = ["uv", "run", "--no-project", *INDICE, "--with", "torch", "--with", "torchaudio", "--with", "soundfile",
+            "--with", "numpy", "python"]
 
 
 def main():
