@@ -21,4 +21,6 @@ for fmt in 16x9 9x16; do
   echo "preview $fmt: $dir/preview-$fmt-480p.mp4 ($(( $(date +%s) - t0 )) s)"
   python3 scripts/conferir-quadros.py "$dir/preview-$fmt-480p.mp4" || echo "AVISO: quadros repetidos; rode de novo com CONCORRENCIA=3"
 done
+# abre os previews no player do sistema (ABRIR=0 desliga)
+if [ "${ABRIR:-1}" = 1 ]; then for f in "$dir"/preview-*-480p.mp4; do bash scripts/abrir.sh "$f"; done; fi
 echo "Mostre ao dono e espere o ok. Só depois: bash scripts/export.sh $proj v$v"

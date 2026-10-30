@@ -9,7 +9,12 @@ for f in ffmpeg ffprobe node npm uv; do
   if command -v "$f" >/dev/null; then echo "ok  $f"; else echo "FALTA $f"; falta=1; fi
 done
 if [ "$falta" = 1 ]; then
-  echo "Instale o que falta (Linux: pacman/apt + mise para node e uv; Mac: brew install ffmpeg uv node)."; exit 1
+  if [ "$(uname)" = Darwin ] && command -v brew >/dev/null; then
+    echo "instalando pelo brew: ffmpeg uv node git"; brew install ffmpeg uv node git
+  else
+    echo "Instale o que falta (Mac: o instalador .pkg do Homebrew e depois brew install ffmpeg uv node git;"
+    echo "Linux: pacman/apt, ou mise para node e uv)."; exit 1
+  fi
 fi
 node -e 'const v=+process.versions.node.split(".")[0]; if (v<18) { console.error("Node >= 18"); process.exit(1) }'
 if command -v nvidia-smi >/dev/null && nvidia-smi -L >/dev/null 2>&1; then
@@ -21,8 +26,15 @@ fi
 [ -f "$RAIZ/remotion/src/Composicoes.tsx" ] || cp "$RAIZ/remotion/src/Composicoes.vazio.tsx" "$RAIZ/remotion/src/Composicoes.tsx"
 mkdir -p "$RAIZ/trabalho" "$RAIZ/remotion/public"
 if [ "${1:-}" = "--aquecer" ]; then
-  uv run --no-project --with faster-whisper python -c 'from faster_whisper import download_model; print(download_model("large-v3"))'
-  uv run --no-project --index https://download.pytorch.org/whl/cpu --with torch --with torchaudio python -c \
-    'import torchaudio; torchaudio.pipelines.MMS_FA.get_model(); print("alinhador ok")'
+  if [ "$(uname)" = Darwin ]; then
+    uv run --no-project --with mlx-whisper python -c \
+      'from huggingface_hub import snapshot_download; print(snapshot_download("mlx-community/whisper-large-v3-mlx"))'
+    uv run --no-project --with torch --with torchaudio python -c \
+      'import torchaudio; torchaudio.pipelines.MMS_FA.get_model(); print("alinhador ok")'
+  else
+    uv run --no-project --with faster-whisper python -c 'from faster_whisper import download_model; print(download_model("large-v3"))'
+    uv run --no-project --index https://download.pytorch.org/whl/cpu --with torch --with torchaudio python -c \
+      'import torchaudio; torchaudio.pipelines.MMS_FA.get_model(); print("alinhador ok")'
+  fi
 fi
-echo "pronto. Jogue o bruto em qualquer pasta e diga ao Claude: vamos editar <caminho do bruto>"
+echo "pronto. No Claude: vamos editar <caminho do bruto> (e mande o roteiro aprovado junto)"
