@@ -1,0 +1,23 @@
+{
+  "name": "editor-teaser-remotion",
+  "private": true,
+  "description": "Template de teaser de talking head (16:9 e 9:16). As timelines de cada projeto ficam em src/Composicoes.tsx (gerado, fora do git).",
+  "scripts": {
+    "studio": "remotion studio src/index.ts --port ${PORTA:-3123} --no-open",
+    "render": "remotion render src/index.ts",
+    "still": "remotion still src/index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.538",
+    "@remotion/google-fonts": "4.0.538",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "remotion": "4.0.538",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.0",
+    "typescript": "^5.6.0"
+  }
+}
