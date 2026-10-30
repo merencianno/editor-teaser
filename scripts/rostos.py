@@ -7,7 +7,7 @@ Grava nas duas composições da versão:
 - segmentos[].exposicao: leva a pele de cada take à luz típica da sua câmera (a luz não pula entre takes);
 - cameras.*.rosto: onde o rosto costuma ficar (mediana), usado quando um plano não acha rosto;
 - cameras.b.ganho: ganho R/G/B que casa a pele da câmera B na da A (só com duas câmeras);
-- cor.luz: só se a pele mediana da câmera A estiver fora de 45–70 IRE (leva à borda mais próxima).
+- cor.luz: só se a pele mediana da câmera A estiver fora de 45–70 IRE (leva à borda mais próxima, no máximo 1,5×).
 Imprime tudo o que mediu: confira antes de aceitar (num caso real a câmera lateral saiu ~15 % mais clara e menos
 vermelha; o ganho por canal corrigiu sem mexer no look).
 """
@@ -94,7 +94,7 @@ def main():
         print(f"pele da câmera A: ~{ire:.0f} IRE (alvo 45–70)")
         if ire < 45 or ire > 70:
             alvo = 45 if ire < 45 else 70
-            tl["cor"]["luz"] = round(float(np.clip(alvo / max(ire, 1), 0.8, 1.6)), 3)
+            tl["cor"]["luz"] = round(float(np.clip(alvo / max(ire, 1), 0.8, 1.5)), 3)
             print(f"  → cor.luz = {tl['cor']['luz']}")
     if "a" in rgb_cam and "b" in rgb_cam:
         g = rgb_cam["a"] / np.maximum(rgb_cam["b"], 1) * np.array(tl["cameras"]["a"]["ganho"])

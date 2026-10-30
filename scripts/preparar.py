@@ -16,7 +16,7 @@ from comum import encoder, ffprobe, gravar_projeto, pasta, publicar, slug
 
 def proxy(origem, destino, fps, altura=1080):
     vf = f"scale=-2:{altura}:flags=lanczos,fps={fps}" if altura else f"fps={fps}"
-    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-stats", "-y", "-i", str(origem), "-vf", vf, "-an", *encoder(),
+    subprocess.run(["ffmpeg", "-nostdin", "-v", "error", "-y", "-i", str(origem), "-vf", vf, "-an", *encoder(),
                     "-g", "15", "-pix_fmt", "yuv420p", "-movflags", "+faststart", str(destino)], check=True)
 
 

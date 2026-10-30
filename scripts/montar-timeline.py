@@ -39,7 +39,8 @@ def pedacos_do_trecho(F, tr):
     b = F.achar(tr.get("de_fim", tr["de"]), tr["fim"], janela=tr.get("janela", 90), depois_de=a["i"])
     ws = F.ws[a["i"]:b["k"] + 1]
     max_p, fica = tr.get("maxPausa", MAX_PAUSA), tr.get("pausaFica", PAUSA_FICA)
-    out, ini = [], max(ws[0]["s"] - ANTES, a["antes"] + 0.02)
+    # começa um pouco antes da primeira palavra, sem pegar o fim da palavra anterior do bruto
+    out, ini = [], min(ws[0]["s"] - 0.02, max(ws[0]["s"] - ANTES, a["antes"] + 0.02))
     for w1, w2 in zip(ws, ws[1:]):
         if w2["s"] - w1["e"] > max_p:
             out.append([ini, w1["e"] + DEPOIS + fica * 0.4])
@@ -101,14 +102,17 @@ def main():
                 else: zoom, push = (Z_JUMP if (ultimo_zoom or Z_ABERTO) == Z_ABERTO else Z_ABERTO), 0.02  # jump cut alterna
                 if k == len(planos) - 1 and tr.get("respiroDepois", 0) >= 0.8 and not e_chave: push = 0.08  # reação
                 zoom = tr.get("zoom", zoom) if k == 0 else zoom
+                # junção sem troca de câmera nem de tamanho é jump cut aparente: alterna o tamanho
+                if segs and not contiguo and cam == segs[-1]["camera"] and abs(zoom - segs[-1]["zoom"]) < 0.01:
+                    zoom = Z_JUMP if zoom == Z_ABERTO else Z_ABERTO
                 if not e_chave: ultimo_zoom = zoom
                 segs.append({"bloco": bloco["nome"], "de": round(de, 3), "ate": round(ate, 3), "camera": cam,
                              "zoom": zoom, "push": push, "chave": bool(e_chave)})
-                texto = " ".join(w["w"] for w in ws if de <= w["s"] < ate)
+                dentro = [w for w in ws if de - 0.1 <= w["s"] < ate and not (k and w["s"] < de)]
+                texto = " ".join(w["w"] for w in dentro)
                 rel.append(f"| {mmss(t)} | {ate - de:4.1f} s | {bloco['nome']} | {mmss(de)} | {cam} | {zoom:.3f}{' chave' if e_chave else ''} | {texto} |")
-                for w in ws:
-                    if de <= w["s"] < ate:
-                        ws_tl.append({"w": w["w"], "s": t + w["s"] - de, "e": t + min(w["e"], ate) - de, "bruto": w["s"], "bruto_e": w["e"]})
+                for w in dentro:
+                    ws_tl.append({"w": w["w"], "s": t + max(0.0, w["s"] - de), "e": t + min(w["e"], ate) - de, "bruto": w["s"], "bruto_e": w["e"]})
                 t += ate - de
     fim_fala = t
 
