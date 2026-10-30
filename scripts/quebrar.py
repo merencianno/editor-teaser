@@ -1,0 +1,1 @@
+../.claude/skills/legenda-vertical/scripts/quebrar.py
