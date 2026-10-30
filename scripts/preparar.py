@@ -33,6 +33,8 @@ def main():
     ap.add_argument("projeto"); ap.add_argument("bruto", nargs="?")
     ap.add_argument("--musica"); ap.add_argument("--tirar-ar", action="store_true"); ap.add_argument("--forcar", action="store_true")
     a = ap.parse_args()
+    for arq in filter(None, [a.bruto, a.musica]):  # confere antes do trabalho pesado
+        if not pathlib_abs(arq).is_file(): sys.exit(f"arquivo não encontrado: {arq}")
     dir_ = pasta(a.projeto); dir_.mkdir(parents=True, exist_ok=True)
     pj = dir_ / "projeto.json"
     dados = json.loads(pj.read_text()) if pj.exists() else None
